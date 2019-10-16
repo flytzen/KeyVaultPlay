@@ -20,8 +20,8 @@
             var tokenProvider = new AzureServiceTokenProvider();
             keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback));
             CreateKeyIfNotExists().Wait();
-            // SignAndVerify().Wait();
-            EncryptAndWrap().Wait();
+            SignAndVerify().Wait();
+            // EncryptAndWrap().Wait();
         }
 
         private static async Task CreateKeyIfNotExists()
@@ -48,7 +48,6 @@
             string keyWrappingEncryptionAlgorithm = JsonWebKeyEncryptionAlgorithm.RSA15;
 
             // TODO: This (probably) doesn't use "AE" - update accordingly.
-
             // This creates a random key and initialisation vector (IV) and encrypts the data
             using (var encryptingAes = Aes.Create())
             {
@@ -127,9 +126,11 @@
 
         private static byte[] GetSHA512Digest(string input)
         {
-            var sha = new SHA512Managed();
-            var bytes = System.Text.Encoding.UTF8.GetBytes(input);
-            return sha.ComputeHash(bytes);
+            using (var sha = SHA512.Create())
+            {
+                var bytes = System.Text.Encoding.UTF8.GetBytes(input);
+                return sha.ComputeHash(bytes);
+            }
         }
 
 
